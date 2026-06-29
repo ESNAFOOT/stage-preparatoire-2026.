@@ -1,5 +1,5 @@
-const SUPABASE_URL = "COLLER_ICI_URL_SUPABASE";
-const SUPABASE_ANON_KEY = "COLLER_ICI_CLE_ANON_SUPABASE";
+const SUPABASE_URL = "https://kvsejuzjrxnphnxxurte.supabase.co";
+const SUPABASE_ANON_KEY = "sb_publishable_T80YyCsx5qpfUwkq5MJvVg_D1--pxvy";
 
 // Réception mail ESNA via Formspree
 const FORMSPREE_URL = "https://formspree.io/f/xzdlvkaa";
