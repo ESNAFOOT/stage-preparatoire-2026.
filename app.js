@@ -33,7 +33,7 @@ function localData(){return JSON.parse(localStorage.getItem("esna_registrations_
 
 async function getData(){
   if(client){
-    const {data,error}=await client.from("registrations").select("slots,slots_text,slot");
+    const {data,error}=await client.from("registrations").select("slots,slots_text");
     if(error){
       console.error("Erreur Supabase lecture:", error);
       return [];
