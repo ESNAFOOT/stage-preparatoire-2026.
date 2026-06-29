@@ -29,13 +29,16 @@ if(document.getElementById("payment_method")){
   });
 }
 
-function localData(){return JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]")}
+function localData(){
+  return JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]");
+}
 
 async function getData(){
   if(client){
-    const {data,error}=await client.from("registrations").select("slots,slots_text");
+    // On récupère toutes les colonnes pour éviter les erreurs si une ancienne inscription n'a pas le même format.
+    const {data,error}=await client.from("registrations").select("*");
     if(error){
-      console.error("Erreur Supabase lecture:", error);
+      console.error("Erreur Supabase lecture planning:", error);
       return [];
     }
     return data||[];
@@ -43,32 +46,58 @@ async function getData(){
   return localData();
 }
 
+// Correction V16 : compte les créneaux quel que soit le format enregistré dans Supabase.
 function allBookedSlots(data){
   let booked=[];
   data.forEach(r=>{
-    if(Array.isArray(r.slots)) booked=booked.concat(r.slots);
-    else if(r.slots) booked=booked.concat(String(r.slots).split(" | "));
-    else if(r.slots_text) booked=booked.concat(String(r.slots_text).split(" | "));
-    else if(r.slot) booked.push(r.slot);
+    if(Array.isArray(r.slots)){
+      booked = booked.concat(r.slots);
+    }
+
+    if(typeof r.slots === "string" && r.slots.trim() !== ""){
+      booked = booked.concat(r.slots.split(" | "));
+    }
+
+    if(r.slots_text && String(r.slots_text).trim() !== ""){
+      booked = booked.concat(String(r.slots_text).split(" | "));
+      booked = booked.concat(String(r.slots_text).split(" / "));
+    }
+
+    if(r.slot && String(r.slot).trim() !== ""){
+      booked.push(r.slot);
+    }
   });
-  return booked;
+
+  // Nettoyage des espaces et suppression des valeurs vides
+  return booked.map(s=>String(s).trim()).filter(Boolean);
 }
 
 async function loadSlots(){
  const c=document.getElementById("slots");
  if(!c) return;
+
  c.innerHTML="";
- const booked=allBookedSlots(await getData());
+ const rows = await getData();
+ const booked = allBookedSlots(rows);
 
  slotsData.forEach(([d,h])=>{
   const key=d+" - "+h;
   const count=booked.filter(s=>s===key).length;
-  const left=MAX_PLACES_PER_SLOT-count;
+  const left=Math.max(0, MAX_PLACES_PER_SLOT-count);
+
   const div=document.createElement("div");
   div.className="slot-card";
-  div.innerHTML=`<label class="slot-label"><input type="checkbox" ${selected.includes(key)?"checked":""} ${left<=0&&!selected.includes(key)?"disabled":""} onchange="toggleSlot('${key}',this.checked)"><span><h3>${d}</h3><p>${h}</p><p class="${left>0?'available':'full'}">${left>0?'✅ '+left+' place'+(left>1?'s':'')+' restante'+(left>1?'s':'')+' / '+MAX_PLACES_PER_SLOT:'❌ Complet'}</p></span></label>`;
+  div.innerHTML=`<label class="slot-label">
+    <input type="checkbox" ${selected.includes(key)?"checked":""} ${left<=0&&!selected.includes(key)?"disabled":""} onchange="toggleSlot('${key}',this.checked)">
+    <span>
+      <h3>${d}</h3>
+      <p>${h}</p>
+      <p class="${left>0?'available':'full'}">${left>0?'✅ '+left+' place'+(left>1?'s':'')+' restante'+(left>1?'s':'')+' / '+MAX_PLACES_PER_SLOT:'❌ Complet'}</p>
+    </span>
+  </label>`;
   c.appendChild(div);
  });
+
  updateSelectedView();
 }
 
@@ -80,6 +109,7 @@ function toggleSlot(slot, checked){
 
 function updateSelectedView(){
  if(!document.getElementById("selectedSlots")) return;
+
  selectedSlots.value=selected.join(" | ");
  selectedSlotsText.textContent=selected.length?selected.join(" / "):"Aucun";
  countSelected.textContent=selected.length;
@@ -158,7 +188,7 @@ registrationForm.addEventListener("submit",async e=>{
   medical_notes:medical_notes.value,
   payment_method:payment_method.value,
   payment_reference:paymentReference(),
-  slots:selected,
+  slots:selected.slice(),
   slots_text:selected.join(" | "),
   payment_status:"En attente"
  };
