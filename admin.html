@@ -1,53 +1,18 @@
 <!doctype html>
 <html lang="fr">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Admin ESNA</title>
-<link rel="stylesheet" href="style.css">
-</head>
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin ESNA</title><link rel="stylesheet" href="style.css"></head>
 <body>
-<header class="admin-head">
-  <img src="logo_esna.png" alt="Logo ESNA">
-  <h1>Administration ESNA</h1>
-  <a href="index.html" class="btn">Retour site</a>
-</header>
-
-<section id="loginBox" class="login">
-<h2>Connexion administrateur</h2>
-<label>Mot de passe<input id="adminPassword" type="password" placeholder="Mot de passe"></label>
-<button onclick="login()">Se connecter</button>
-<p id="loginMessage"></p>
-</section>
-
+<header class="admin-head"><img src="logo_esna.png" alt="Logo ESNA"><h1>Administration ESNA</h1><a href="index.html" class="btn">Retour site</a></header>
+<section id="loginBox" class="login"><h2>Connexion administrateur</h2><label>Mot de passe<input id="adminPassword" type="password" placeholder="Mot de passe"></label><button onclick="login()">Se connecter</button><p id="loginMessage"></p></section>
 <section id="adminPanel" style="display:none">
 <h2>Tableau de bord</h2>
-<div class="dashboard">
-<div><b id="total">0</b><br>inscriptions</div>
-<div><b id="pending">0</b><br>paiements en attente</div>
-<div><b id="paid">0</b><br>paiements validés</div>
-</div>
-
-<div class="actions">
-<button onclick="exportCSV()">Exporter Excel / CSV</button>
-<button onclick="window.print()">Exporter PDF</button>
-<button onclick="logout()">Déconnexion</button>
-</div>
-
-<p class="note">Tu peux supprimer une inscription en cas d'erreur. Cela libère automatiquement les places sur les créneaux concernés.</p>
-
+<div class="dashboard"><div><b id="total">0</b><br>inscriptions</div><div><b id="pending">0</b><br>paiements en attente</div><div><b id="paid">0</b><br>paiements validés</div></div>
+<div class="actions"><button onclick="exportCSV()">Exporter Excel / CSV</button><button onclick="window.print()">Exporter PDF</button><button onclick="logout()">Déconnexion</button></div>
+<p class="note">Tu peux valider un paiement ou supprimer une inscription en cas d'erreur.</p>
 <table id="registrationsTable">
-<thead>
-<tr>
-<th>Joueur</th><th>Cat.</th><th>Créneaux</th><th>Formule</th><th>Statut</th><th>Email</th><th>Tél.</th><th>Paiement</th><th>Action</th>
-</tr>
-</thead>
+<thead><tr><th>Joueur</th><th>Cat.</th><th>Créneaux</th><th>Formule</th><th>Statut</th><th>Mode paiement</th><th>Paiement</th><th>Email</th><th>Tél.</th><th>Action</th></tr></thead>
 <tbody></tbody>
 </table>
 </section>
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<script src="config.js"></script>
-<script src="admin.js"></script>
-</body>
-</html>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="admin.js"></script>
+</body></html>

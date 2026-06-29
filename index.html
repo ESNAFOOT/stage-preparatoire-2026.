@@ -3,55 +3,27 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-
-<title>Inscription - Stage Préparatoire ESNA 2026</title>
-<meta name="description" content="Inscription au Stage Préparatoire ESNA 2026 pour les catégories U13 à U18. Du 3 au 27 août 2026 au Stade Marius Jacquard à Arcis-sur-Aube.">
-
-<meta property="og:title" content="Inscription Stage Préparatoire ESNA 2026">
-<meta property="og:description" content="U13 à U18 • Garçons et filles • Du 3 au 27 août 2026 • Réserve tes créneaux.">
-<meta property="og:type" content="website">
-
+<title>Inscription Stage Préparatoire ESNA 2026</title>
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
-
 <header class="hero">
   <div class="top-banner">🔴⚪ INSCRIPTIONS OUVERTES</div>
-
   <img src="logo_esna.png" alt="Logo ESNA" class="logo">
-
   <p class="club">ENTENTE SPORTIVE NORD AUBOIS</p>
-
-  <h1>
-    INSCRIPTION<br>
-    STAGE PRÉPARATOIRE<br>
-    ESNA 2026
-  </h1>
-
+  <h1>INSCRIPTION<br>STAGE PRÉPARATOIRE<br>ESNA 2026</h1>
   <p class="subtitle">Prépare ta saison avant la reprise officielle</p>
-
   <div class="infos">
     📅 Du 3 au 27 août 2026<br>
     👥 U13 • U14 • U15 • U16 • U18<br>
     ⚽ Garçons & Filles<br>
     📍 Stade Marius Jacquard – Arcis-sur-Aube
   </div>
-
   <div class="buttons">
     <a href="#planning" class="btn">📅 Réserver mes créneaux</a>
     <a href="#inscription" class="btn btn2">✍️ M'inscrire</a>
   </div>
 </header>
-
-<section class="intro">
-  <h2>Un stage pour bien préparer ta saison</h2>
-  <div class="cards">
-    <div class="card">🏃‍♂️<h3>Préparation physique</h3><p>Reprise progressive et adaptée.</p></div>
-    <div class="card">⚡<h3>Vitesse & appuis</h3><p>Travail spécifique football.</p></div>
-    <div class="card">💪<h3>Renforcement</h3><p>Gainage et prévention des blessures.</p></div>
-    <div class="card">❤️<h3>Endurance</h3><p>Retrouver du rythme avant la reprise.</p></div>
-  </div>
-</section>
 
 <section>
 <h2>Tarifs</h2>
@@ -61,12 +33,12 @@
 <tr><td>5 séances</td><td>90 €</td><td>110 €</td></tr>
 <tr><td>10 séances</td><td>170 €</td><td>210 €</td></tr>
 </table>
-<p class="note">10 joueurs maximum par créneau.</p>
+<p class="note">10 participants maximum par créneau.</p>
 </section>
 
 <section id="planning">
 <h2>Planning partagé</h2>
-<p>Sélectionne un ou plusieurs créneaux. Les places restantes s'affichent automatiquement.</p>
+<p>Sélectionne un ou plusieurs créneaux. Les places restantes sont mises à jour automatiquement.</p>
 <div class="summary">
 <div>Créneaux sélectionnés : <b id="countSelected">0</b></div>
 <div>Formule conseillée : <b id="recommended">Aucune</b></div>
@@ -82,41 +54,39 @@
 
 <label>Nom du joueur<input id="player_lastname" required></label>
 <label>Prénom du joueur<input id="player_firstname" required></label>
-
-<label>Catégorie
-<select id="category">
-<option>U13</option><option>U14</option><option>U15</option><option>U16</option><option>U18</option>
-</select>
-</label>
-
-<label>Statut
-<select id="status">
-<option>Licencié ESNA</option><option>Non licencié ESNA</option>
-</select>
-</label>
-
-<label>Formule choisie
-<select id="package">
-<option value="">Choisir</option><option>1 séance</option><option>5 séances</option><option>10 séances</option>
-</select>
-</label>
-
+<label>Catégorie<select id="category"><option>U13</option><option>U14</option><option>U15</option><option>U16</option><option>U18</option></select></label>
+<label>Statut<select id="status"><option>Licencié ESNA</option><option>Non licencié ESNA</option></select></label>
+<label>Formule choisie<select id="package"><option value="">Choisir</option><option>1 séance</option><option>5 séances</option><option>10 séances</option></select></label>
 <label>Email parent<input id="parent_email" type="email" required></label>
 <label>Téléphone parent<input id="parent_phone" required></label>
 <label>Club actuel<input id="current_club" placeholder="ESNA ou autre club"></label>
-<label>Informations médicales<textarea id="medical_notes"></textarea></label>
 
+<label>Mode de paiement
+<select id="payment_method" required>
+<option value="">Choisir le mode de paiement</option>
+<option>Virement bancaire</option>
+<option>Espèces le jour du stage</option>
+<option>Chèque à l'ordre de l'ESNA</option>
+</select>
+</label>
+
+<div id="ribBox" class="rib-box" style="display:none">
+<h3>💳 Paiement par virement bancaire</h3>
+<p><b>Titulaire :</b> ASSOC. ESNA</p>
+<p><b>IBAN :</b> FR76 1100 6000 1104 0190 0500 126</p>
+<p><b>BIC :</b> AGRIFRPP810</p>
+<p><b>Référence à indiquer :</b> STAGE2026 NOM PRÉNOM</p>
+<p class="note">Exemple : STAGE2026 DUPONT LUCAS</p>
+<img src="rib-esna.jpg" alt="RIB ESNA" class="rib-img">
+</div>
+
+<label>Informations médicales<textarea id="medical_notes"></textarea></label>
 <button type="submit">Valider l'inscription</button>
-<a class="hello" id="helloasso" href="#">Payer sur HelloAsso</a>
 </form>
 <div id="message"></div>
 </section>
 
-<footer>
-  <strong>ESNA Football</strong><br>
-  Stage préparatoire ESNA 2026<br>
-  Stade Marius Jacquard – Arcis-sur-Aube
-</footer>
+<footer><strong>ESNA Football</strong><br>Stage préparatoire de reprise 2026<br>Stade Marius Jacquard – Arcis-sur-Aube</footer>
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="config.js"></script>

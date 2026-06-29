@@ -16,7 +16,7 @@ const configured=SUPABASE_URL && !SUPABASE_URL.includes("COLLER_ICI") && SUPABAS
 const client=configured ? supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY) : null;
 let selected=[];
 
-if(HELLOASSO_PAYMENT_URL && !HELLOASSO_PAYMENT_URL.includes("COLLER_ICI")) document.getElementById("helloasso").href=HELLOASSO_PAYMENT_URL;
+payment_method.addEventListener("change",()=>{ribBox.style.display = payment_method.value === "Virement bancaire" ? "block" : "none";});
 
 function localData(){return JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]")}
 async function getData(){if(client){let r=await client.from("registrations").select("slots");if(!r.error)return r.data||[]}return localData()}
@@ -28,31 +28,69 @@ async function loadSlots(){
  slotsData.forEach(([d,h])=>{
   const key=d+" - "+h; const count=booked.filter(s=>s===key).length; const left=MAX_PLACES_PER_SLOT-count;
   const div=document.createElement("div"); div.className="slot-card";
-  div.innerHTML=`<label class="slot-label"><input type="checkbox" ${selected.includes(key)?"checked":""} ${left<=0&&!selected.includes(key)?"disabled":""} onchange="toggleSlot('${key}',this.checked)"><span><h3>${d}</h3><p>${h}</p><p class="${left>0?'available':'full'}">
-  ${left>0 ? '✅ ' + left + ' place' + (left>1?'s':'') + ' restante' + (left>1?'s':'') + ' / ' + MAX_PLACES_PER_SLOT : '❌ Complet'}
-</p></span></label>`;
+  div.innerHTML=`<label class="slot-label"><input type="checkbox" ${selected.includes(key)?"checked":""} ${left<=0&&!selected.includes(key)?"disabled":""} onchange="toggleSlot('${key}',this.checked)"><span><h3>${d}</h3><p>${h}</p><p class="${left>0?'available':'full'}">${left>0?'✅ '+left+' place'+(left>1?'s':'')+' restante'+(left>1?'s':'')+' / '+MAX_PLACES_PER_SLOT:'❌ Complet'}</p></span></label>`;
   c.appendChild(div);
  });
  updateSelectedView();
 }
-
 function toggleSlot(slot, checked){if(checked&&!selected.includes(slot))selected.push(slot); if(!checked)selected=selected.filter(s=>s!==slot); updateSelectedView()}
 function updateSelectedView(){
  selectedSlots.value=selected.join(" | "); selectedSlotsText.textContent=selected.length?selected.join(" / "):"Aucun"; countSelected.textContent=selected.length;
  let rec="Aucune"; if(selected.length===1)rec="1 séance"; else if(selected.length<=5&&selected.length>1)rec="5 séances"; else if(selected.length<=10&&selected.length>5)rec="10 séances"; else if(selected.length>10)rec="Plusieurs forfaits";
  recommended.textContent=rec; if(["1 séance","5 séances","10 séances"].includes(rec)) package.value=rec;
 }
+function paymentReference(){return "STAGE2026 " + player_lastname.value.toUpperCase() + " " + player_firstname.value.toUpperCase();}
+
+async function sendFormspreeMail(reg){
+  if(!FORMSPREE_URL || FORMSPREE_URL.includes("COLLER_ICI")) return;
+  const body = `Nouvelle inscription Stage Préparatoire ESNA 2026
+
+Joueur : ${reg.player_firstname} ${reg.player_lastname}
+Catégorie : ${reg.category}
+Statut : ${reg.status}
+Formule : ${reg.package}
+Créneaux : ${reg.slots_text}
+Mode de paiement : ${reg.payment_method}
+Statut paiement : ${reg.payment_status}
+Référence virement : ${reg.payment_reference}
+
+Email parent : ${reg.parent_email}
+Téléphone parent : ${reg.parent_phone}
+Club actuel : ${reg.current_club}
+Informations médicales : ${reg.medical_notes}`;
+  await fetch(FORMSPREE_URL,{
+    method:"POST",
+    headers:{"Content-Type":"application/json","Accept":"application/json"},
+    body:JSON.stringify({
+      _subject:"Nouvelle inscription - Stage préparatoire ESNA 2026",
+      email:reg.parent_email,
+      joueur:reg.player_firstname+" "+reg.player_lastname,
+      categorie:reg.category,
+      creneaux:reg.slots_text,
+      mode_paiement:reg.payment_method,
+      reference_virement:reg.payment_reference,
+      telephone:reg.parent_phone,
+      message:body
+    })
+  }).catch(()=>{});
+}
 
 registrationForm.addEventListener("submit",async e=>{
- e.preventDefault(); if(selected.length===0){alert("Choisis au moins un créneau.");return}
+ e.preventDefault();
+ if(selected.length===0){alert("Choisis au moins un créneau.");return}
  const formule=package.value; if(!formule){alert("Choisis une formule.");return}
+ if(!payment_method.value){alert("Choisis un mode de paiement.");return}
  const max=formule==="1 séance"?1:formule==="5 séances"?5:10;
  if(selected.length>max){alert("Tu as sélectionné plus de créneaux que la formule choisie.");return}
- const reg={player_lastname:player_lastname.value,player_firstname:player_firstname.value,category:category.value,status:status.value,package:formule,parent_email:parent_email.value,parent_phone:parent_phone.value,current_club:current_club.value,medical_notes:medical_notes.value,slots:selected,slots_text:selected.join(" | "),payment_status:"En attente"};
+ const reg={player_lastname:player_lastname.value,player_firstname:player_firstname.value,category:category.value,status:status.value,package:formule,parent_email:parent_email.value,parent_phone:parent_phone.value,current_club:current_club.value,medical_notes:medical_notes.value,payment_method:payment_method.value,payment_reference:paymentReference(),slots:selected,slots_text:selected.join(" | "),payment_status:"En attente"};
  if(client){let r=await client.from("registrations").insert([reg]);if(r.error){message.textContent="Erreur : "+r.error.message;return}}else{let d=localData();d.push({id:Date.now().toString(),...reg});localStorage.setItem("esna_registrations_demo",JSON.stringify(d))}
- message.textContent="✅ Inscription enregistrée."; e.target.reset(); selected=[]; updateSelectedView(); loadSlots();
+ await sendFormspreeMail(reg);
+ let payText="";
+ if(reg.payment_method==="Virement bancaire"){payText=`<div class="rib-confirm"><b>RIB ESNA :</b><br>IBAN : FR76 1100 6000 1104 0190 0500 126<br>BIC : AGRIFRPP810<br>Référence : ${reg.payment_reference}</div>`}
+ else if(reg.payment_method==="Chèque à l'ordre de l'ESNA"){payText=`<div class="rib-confirm">Merci de remettre le chèque à l'ordre de l'ESNA.</div>`}
+ else{payText=`<div class="rib-confirm">Paiement en espèces à remettre le jour du stage.</div>`}
+ message.innerHTML=`✅ Inscription enregistrée.<br>Un e-mail récapitulatif est envoyé à l'ESNA.<br>${payText}`;
+ e.target.reset(); selected=[]; updateSelectedView(); ribBox.style.display="none"; loadSlots();
 });
 loadSlots();
-
-// Actualisation automatique des places restantes toutes les 15 secondes
-setInterval(loadSlots, 15000);
+setInterval(loadSlots,15000);
