@@ -49,26 +49,21 @@ async function getData(){
 // Correction V16 : compte les créneaux quel que soit le format enregistré dans Supabase.
 function allBookedSlots(data){
   let booked=[];
+
   data.forEach(r=>{
-    if(Array.isArray(r.slots)){
+    // Important : on ne compte qu'une seule source par inscription.
+    // Sinon le même créneau est compté deux fois car il existe dans "slots" ET dans "slots_text".
+    if(Array.isArray(r.slots) && r.slots.length > 0){
       booked = booked.concat(r.slots);
-    }
-
-    if(typeof r.slots === "string" && r.slots.trim() !== ""){
+    } else if(typeof r.slots === "string" && r.slots.trim() !== ""){
       booked = booked.concat(r.slots.split(" | "));
-    }
-
-    if(r.slots_text && String(r.slots_text).trim() !== ""){
+    } else if(r.slots_text && String(r.slots_text).trim() !== ""){
       booked = booked.concat(String(r.slots_text).split(" | "));
-      booked = booked.concat(String(r.slots_text).split(" / "));
-    }
-
-    if(r.slot && String(r.slot).trim() !== ""){
+    } else if(r.slot && String(r.slot).trim() !== ""){
       booked.push(r.slot);
     }
   });
 
-  // Nettoyage des espaces et suppression des valeurs vides
   return booked.map(s=>String(s).trim()).filter(Boolean);
 }
 
