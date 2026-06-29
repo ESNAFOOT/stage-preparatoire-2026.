@@ -1,0 +1,8 @@
+const SUPABASE_URL = "COLLER_ICI_URL_SUPABASE";
+const SUPABASE_ANON_KEY = "COLLER_ICI_CLE_ANON_SUPABASE";
+const HELLOASSO_PAYMENT_URL = "COLLER_ICI_LIEN_HELLOASSO";
+const MAX_PLACES_PER_SLOT = 10;
+
+// Mot de passe admin provisoire.
+// À changer avant publication.
+const ADMIN_PASSWORD = "ESNA2026";
