@@ -1,5 +1,5 @@
-const VERSION_COMPTEUR_ESNA = "V18 - slots uniquement";
-console.log(VERSION_COMPTEUR_ESNA);
+const VERSION_ESNA = "V22 - montant sélection corrigé";
+
 const slotsData=[
 ["Lundi 3 août","10h-12h"],["Lundi 3 août","14h-16h"],
 ["Mardi 4 août","10h-12h"],["Mardi 4 août","14h-16h"],
@@ -25,24 +25,12 @@ const configured =
 const client = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let selected=[];
 
-if(document.getElementById("status")){
-  status.addEventListener("change", updateTotalBox);
-}
-
-
-if(document.getElementById("payment_method")){
-  payment_method.addEventListener("change",()=>{
-    ribBox.style.display = payment_method.value === "Virement bancaire" ? "block" : "none";
-  });
-}
-
 function localData(){
   return JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]");
 }
 
 async function getData(){
   if(client){
-    // On récupère toutes les colonnes pour éviter les erreurs si une ancienne inscription n'a pas le même format.
     const {data,error}=await client.from("registrations").select("*");
     if(error){
       console.error("Erreur Supabase lecture planning:", error);
@@ -53,19 +41,36 @@ async function getData(){
   return localData();
 }
 
-// Correction V16 : compte les créneaux quel que soit le format enregistré dans Supabase.
 function allBookedSlots(data){
   let booked=[];
-
   data.forEach(r=>{
-    // V18 : on compte uniquement la colonne "slots".
-    // La colonne "slots_text" sert seulement à l'affichage dans l'admin.
     if(Array.isArray(r.slots) && r.slots.length > 0){
       booked = booked.concat(r.slots);
     }
   });
-
   return booked.map(s=>String(s).trim()).filter(Boolean);
+}
+
+function getUnitPrice(){
+  const statusEl = document.getElementById("status");
+  return statusEl && statusEl.value === "Licencié ESNA" ? 20 : 25;
+}
+
+function getAmountDue(){
+  return selected.length * getUnitPrice();
+}
+
+function updateTotalBox(){
+  const sessionsEl = document.getElementById("totalSessions");
+  const amountEl = document.getElementById("totalAmount");
+
+  if(!sessionsEl || !amountEl) return;
+
+  const nb = selected.length;
+  const total = getAmountDue();
+
+  sessionsEl.textContent = nb + " séance" + (nb > 1 ? "s" : "");
+  amountEl.textContent = total + " €";
 }
 
 async function loadSlots(){
@@ -95,61 +100,55 @@ async function loadSlots(){
  });
 
  updateSelectedView();
- updateTotalBox();
 }
 
 function toggleSlot(slot, checked){
-  if(checked&&!selected.includes(slot)) selected.push(slot);
-  if(!checked) selected=selected.filter(s=>s!==slot);
+  if(checked && !selected.includes(slot)){
+    selected.push(slot);
+  }
+  if(!checked){
+    selected = selected.filter(s=>s!==slot);
+  }
   updateSelectedView();
 }
 
 function updateSelectedView(){
- if(!document.getElementById("selectedSlots")) return;
+ const selectedSlotsInput = document.getElementById("selectedSlots");
+ const selectedSlotsTextEl = document.getElementById("selectedSlotsText");
+ const countSelectedEl = document.getElementById("countSelected");
+ const recommendedEl = document.getElementById("recommended");
+ const packageEl = document.getElementById("package");
 
- selectedSlots.value=selected.join(" | ");
- selectedSlotsText.textContent=selected.length?selected.join(" / "):"Aucun";
- countSelected.textContent=selected.length;
+ if(selectedSlotsInput){
+   selectedSlotsInput.value = selected.join(" | ");
+ }
+ if(selectedSlotsTextEl){
+   selectedSlotsTextEl.textContent = selected.length ? selected.join(" / ") : "Aucun";
+ }
+ if(countSelectedEl){
+   countSelectedEl.textContent = selected.length;
+ }
 
  let rec="Aucune";
  if(selected.length===1) rec="1 séance";
- else if(selected.length<=5&&selected.length>1) rec="5 séances";
- else if(selected.length<=10&&selected.length>5) rec="10 séances";
+ else if(selected.length<=5 && selected.length>1) rec="5 séances";
+ else if(selected.length<=10 && selected.length>5) rec="10 séances";
  else if(selected.length>10) rec="Plusieurs forfaits";
 
- recommended.textContent=rec;
- if(["1 séance","5 séances","10 séances"].includes(rec)) package.value=rec;
+ if(recommendedEl){
+   recommendedEl.textContent = rec;
+ }
+ if(packageEl && ["1 séance","5 séances","10 séances"].includes(rec)){
+   packageEl.value = rec;
+ }
+
  updateTotalBox();
 }
 
-
-function updateTotalBox(){
-  const box = document.getElementById("totalBox");
-  const sessionsEl = document.getElementById("totalSessions");
-  const amountEl = document.getElementById("totalAmount");
-  const statusEl = document.getElementById("status");
-
-  if(!box || !sessionsEl || !amountEl) return;
-
-  const nb = selected.length;
-  const statut = statusEl ? statusEl.value : "Licencié ESNA";
-  const unit = statut === "Licencié ESNA" ? 20 : 25;
-  const total = nb * unit;
-
-  sessionsEl.textContent = nb + " séance" + (nb > 1 ? "s" : "");
-  amountEl.textContent = total + " €";
-}
-
 function paymentReference(){
-  return "STAGE2026 " + player_lastname.value.toUpperCase() + " " + player_firstname.value.toUpperCase();
-}
-
-function getUnitPrice(statusValue){
-  return statusValue === "Licencié ESNA" ? 20 : 25;
-}
-
-function getAmountDue(statusValue, numberOfSessions){
-  return getUnitPrice(statusValue) * numberOfSessions;
+  const ln = document.getElementById("player_lastname").value.toUpperCase();
+  const fn = document.getElementById("player_firstname").value.toUpperCase();
+  return "STAGE2026 " + ln + " " + fn;
 }
 
 async function sendFormspreeMail(reg){
@@ -161,10 +160,12 @@ Joueur : ${reg.player_firstname} ${reg.player_lastname}
 Catégorie : ${reg.category}
 Statut : ${reg.status}
 Formule : ${reg.package}
+Nombre de séances : ${reg.number_sessions}
+Total dû : ${reg.amount_due} €
 Créneaux : ${reg.slots_text}
 Mode de paiement : ${reg.payment_method}
 Statut paiement : ${reg.payment_status}
-Référence virement : ${reg.payment_reference}\nNombre de séances : ${reg.number_sessions}\nTotal dû : ${reg.amount_due} €
+Référence virement : ${reg.payment_reference}
 
 Email parent : ${reg.parent_email}
 Téléphone parent : ${reg.parent_phone}
@@ -180,6 +181,8 @@ Informations médicales : ${reg.medical_notes}`;
       joueur:reg.player_firstname+" "+reg.player_lastname,
       categorie:reg.category,
       creneaux:reg.slots_text,
+      nombre_seances:reg.number_sessions,
+      total_du:reg.amount_due+" €",
       mode_paiement:reg.payment_method,
       reference_virement:reg.payment_reference,
       telephone:reg.parent_phone,
@@ -188,78 +191,96 @@ Informations médicales : ${reg.medical_notes}`;
   }).catch((e)=>console.warn("Formspree non envoyé", e));
 }
 
-if(document.getElementById("registrationForm")){
-registrationForm.addEventListener("submit",async e=>{
- e.preventDefault();
-
- if(selected.length===0){alert("Choisis au moins un créneau.");return}
- const formule=package.value;
- if(!formule){alert("Choisis une formule.");return}
- if(!payment_method.value){alert("Choisis un mode de paiement.");return}
-
- const max=formule==="1 séance"?1:formule==="5 séances"?5:10;
- if(selected.length>max){alert("Tu as sélectionné plus de créneaux que la formule choisie.");return}
-
- const reg={
-  player_lastname:player_lastname.value,
-  player_firstname:player_firstname.value,
-  category:category.value,
-  status:status.value,
-  package:formule,
-  parent_email:parent_email.value,
-  parent_phone:parent_phone.value,
-  current_club:current_club.value,
-  medical_notes:medical_notes.value,
-  payment_method:payment_method.value,
-  payment_reference:paymentReference(),
-  number_sessions:selected.length,
-  amount_due:getAmountDue(status.value, selected.length),
-  slots:selected.slice(),
-  slots_text:selected.join(" | "),
-  payment_status:"En attente"
- };
-
- if(client){
-  const {error}=await client.from("registrations").insert([reg]);
-  if(error){
-    console.error("Erreur inscription Supabase:", error);
-    message.innerHTML="❌ Erreur d'enregistrement : "+error.message;
-    return;
-  }
- }else{
-  let d=localData();
-  d.push({id:Date.now().toString(),...reg});
-  localStorage.setItem("esna_registrations_demo",JSON.stringify(d));
- }
-
- await sendFormspreeMail(reg);
-
- let payText=`<div class="rib-confirm"><b>Total dû :</b> ${reg.amount_due} € pour ${reg.number_sessions} séance(s).</div>`;
- if(reg.payment_method==="Virement bancaire"){
-  payText+=`<div class="rib-confirm"><b>RIB ESNA :</b><br>IBAN : FR76 1100 6000 1104 0190 0500 126<br>BIC : AGRIFRPP810<br>Référence : ${reg.payment_reference}</div>`;
- } else if(reg.payment_method==="Chèque à l'ordre de l'ESNA"){
-  payText+=`<div class="rib-confirm">Merci de remettre le chèque à l'ordre de l'ESNA.</div>`;
- } else {
-  payText+=`<div class="rib-confirm">Paiement en espèces à remettre le jour du stage.</div>`;
- }
-
- message.innerHTML=`✅ Inscription enregistrée.<br>Un e-mail récapitulatif est envoyé à l'ESNA.<br>${payText}`;
- e.target.reset();
- selected=[];
- updateSelectedView();
- if(document.getElementById("ribBox")) ribBox.style.display="none";
- loadSlots();
-});
-}
-
-loadSlots();
-setInterval(loadSlots,15000);
-
-
 document.addEventListener("DOMContentLoaded", function(){
+  const paymentMethodEl = document.getElementById("payment_method");
+  if(paymentMethodEl){
+    paymentMethodEl.addEventListener("change",()=>{
+      const ribBox = document.getElementById("ribBox");
+      if(ribBox){
+        ribBox.style.display = paymentMethodEl.value === "Virement bancaire" ? "block" : "none";
+      }
+    });
+  }
+
   const statusEl = document.getElementById("status");
   if(statusEl){
     statusEl.addEventListener("change", updateTotalBox);
   }
+
+  const form = document.getElementById("registrationForm");
+  if(form){
+    form.addEventListener("submit", async function(e){
+      e.preventDefault();
+
+      if(selected.length===0){alert("Choisis au moins un créneau.");return}
+
+      const packageEl = document.getElementById("package");
+      const paymentMethodEl = document.getElementById("payment_method");
+
+      const formule=packageEl.value;
+      if(!formule){alert("Choisis une formule.");return}
+      if(!paymentMethodEl.value){alert("Choisis un mode de paiement.");return}
+
+      const max=formule==="1 séance"?1:formule==="5 séances"?5:10;
+      if(selected.length>max){alert("Tu as sélectionné plus de créneaux que la formule choisie.");return}
+
+      const reg={
+        player_lastname:document.getElementById("player_lastname").value,
+        player_firstname:document.getElementById("player_firstname").value,
+        category:document.getElementById("category").value,
+        status:document.getElementById("status").value,
+        package:formule,
+        parent_email:document.getElementById("parent_email").value,
+        parent_phone:document.getElementById("parent_phone").value,
+        current_club:document.getElementById("current_club").value,
+        medical_notes:document.getElementById("medical_notes").value,
+        payment_method:paymentMethodEl.value,
+        payment_reference:paymentReference(),
+        number_sessions:selected.length,
+        amount_due:getAmountDue(),
+        slots:selected.slice(),
+        slots_text:selected.join(" | "),
+        payment_status:"En attente"
+      };
+
+      if(client){
+        const {error}=await client.from("registrations").insert([reg]);
+        if(error){
+          console.error("Erreur inscription Supabase:", error);
+          document.getElementById("message").innerHTML="❌ Erreur d'enregistrement : "+error.message;
+          return;
+        }
+      }else{
+        let d=localData();
+        d.push({id:Date.now().toString(),...reg});
+        localStorage.setItem("esna_registrations_demo",JSON.stringify(d));
+      }
+
+      await sendFormspreeMail(reg);
+
+      let payText=`<div class="rib-confirm"><b>Total dû :</b> ${reg.amount_due} € pour ${reg.number_sessions} séance(s).</div>`;
+      if(reg.payment_method==="Virement bancaire"){
+        payText+=`<div class="rib-confirm"><b>RIB ESNA :</b><br>IBAN : FR76 1100 6000 1104 0190 0500 126<br>BIC : AGRIFRPP810<br>Référence : ${reg.payment_reference}</div>`;
+      } else if(reg.payment_method==="Chèque à l'ordre de l'ESNA"){
+        payText+=`<div class="rib-confirm">Merci de remettre le chèque à l'ordre de l'ESNA.</div>`;
+      } else {
+        payText+=`<div class="rib-confirm">Paiement en espèces à remettre le jour du stage.</div>`;
+      }
+
+      document.getElementById("message").innerHTML=`✅ Inscription enregistrée.<br>Un e-mail récapitulatif est envoyé à l'ESNA.<br>${payText}`;
+      form.reset();
+      selected=[];
+      updateSelectedView();
+
+      const ribBox = document.getElementById("ribBox");
+      if(ribBox) ribBox.style.display="none";
+
+      loadSlots();
+    });
+  }
+
   updateTotalBox();
+  loadSlots();
 });
+
+setInterval(loadSlots,15000);
