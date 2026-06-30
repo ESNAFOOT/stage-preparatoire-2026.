@@ -18,3 +18,13 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;color:#1
 .seance-type{margin-top:22px;background:#fff4f4;border-left:7px solid #d60000;border-radius:12px;padding:18px}
 .seance-type h3{margin-top:0;color:#d60000}
 .seance-type li{margin:8px 0;font-weight:700}
+
+.total-box{
+  background:#fff4f4;
+  border-left:7px solid #d60000;
+  border-radius:12px;
+  padding:16px;
+  margin:18px 0;
+}
+.total-box h3{margin-top:0;color:#d60000}
+.total-price{font-size:28px;color:#d60000;margin:5px 0;font-weight:900}

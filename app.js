@@ -25,6 +25,11 @@ const configured =
 const client = configured ? window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let selected=[];
 
+if(document.getElementById("status")){
+  status.addEventListener("change", updateTotalBox);
+}
+
+
 if(document.getElementById("payment_method")){
   payment_method.addEventListener("change",()=>{
     ribBox.style.display = payment_method.value === "Virement bancaire" ? "block" : "none";
@@ -113,6 +118,18 @@ function updateSelectedView(){
 
  recommended.textContent=rec;
  if(["1 séance","5 séances","10 séances"].includes(rec)) package.value=rec;
+ updateTotalBox();
+}
+
+
+function updateTotalBox(){
+  if(!document.getElementById("totalBox")) return;
+  const nb = selected.length;
+  const unit = status && status.value === "Licencié ESNA" ? 20 : 25;
+  const total = nb * unit;
+
+  totalSessions.textContent = nb + " séance" + (nb > 1 ? "s" : "");
+  totalAmount.textContent = total + " €";
 }
 
 function paymentReference(){
