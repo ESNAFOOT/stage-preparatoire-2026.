@@ -18,32 +18,22 @@ function getSlotsCount(r){
 
 function getAmountDue(r){
   if(r.amount_due) return Number(r.amount_due);
-  const unit = r.status === "Licencié ESNA" ? 20 : 25;
-  return unit * getSlotsCount(r);
+
+  const nb = getSlotsCount(r);
+  const statut = r.status || "Licencié ESNA";
+
+  if(statut === "Licencié ESNA"){
+    if(nb <= 0) return 0;
+    if(nb === 1) return 20;
+    if(nb <= 5) return 90;
+    return 170;
+  }else{
+    if(nb <= 0) return 0;
+    if(nb === 1) return 25;
+    if(nb <= 5) return 110;
+    return 210;
+  }
 }
-
-function login(){
- if(adminPassword.value===ADMIN_PASSWORD){
-  sessionStorage.setItem("esna_admin_ok","1");
-  showAdmin();
- }else{
-  loginMessage.textContent="Mot de passe incorrect.";
- }
-}
-
-function logout(){
- sessionStorage.removeItem("esna_admin_ok");
- location.reload();
-}
-
-function showAdmin(){
- loginBox.style.display="none";
- adminPanel.style.display="block";
- load();
-}
-
-if(sessionStorage.getItem("esna_admin_ok")==="1") showAdmin();
-
 async function load(){
  if(client){
   const {data,error}=await client.from("registrations").select("*").order("created_at",{ascending:false});

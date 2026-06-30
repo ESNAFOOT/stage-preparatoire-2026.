@@ -51,15 +51,23 @@ function allBookedSlots(data){
   return booked.map(s=>String(s).trim()).filter(Boolean);
 }
 
-function getUnitPrice(){
-  const statusEl = document.getElementById("status");
-  return statusEl && statusEl.value === "Licencié ESNA" ? 20 : 25;
-}
-
 function getAmountDue(){
-  return selected.length * getUnitPrice();
-}
+  const statusEl = document.getElementById("status");
+  const statut = statusEl ? statusEl.value : "Licencié ESNA";
+  const nb = selected.length;
 
+  if(statut === "Licencié ESNA"){
+    if(nb <= 0) return 0;
+    if(nb === 1) return 20;
+    if(nb <= 5) return 90;
+    return 170;
+  }else{
+    if(nb <= 0) return 0;
+    if(nb === 1) return 25;
+    if(nb <= 5) return 110;
+    return 210;
+  }
+}
 function updateTotalBox(){
   const sessionsEl = document.getElementById("totalSessions");
   const amountEl = document.getElementById("totalAmount");
