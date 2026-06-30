@@ -119,6 +119,14 @@ function paymentReference(){
   return "STAGE2026 " + player_lastname.value.toUpperCase() + " " + player_firstname.value.toUpperCase();
 }
 
+function getUnitPrice(statusValue){
+  return statusValue === "Licencié ESNA" ? 20 : 25;
+}
+
+function getAmountDue(statusValue, numberOfSessions){
+  return getUnitPrice(statusValue) * numberOfSessions;
+}
+
 async function sendFormspreeMail(reg){
   if(!FORMSPREE_URL || FORMSPREE_URL.includes("COLLER_ICI")) return;
 
@@ -131,7 +139,7 @@ Formule : ${reg.package}
 Créneaux : ${reg.slots_text}
 Mode de paiement : ${reg.payment_method}
 Statut paiement : ${reg.payment_status}
-Référence virement : ${reg.payment_reference}
+Référence virement : ${reg.payment_reference}\nNombre de séances : ${reg.number_sessions}\nTotal dû : ${reg.amount_due} €
 
 Email parent : ${reg.parent_email}
 Téléphone parent : ${reg.parent_phone}
@@ -179,6 +187,8 @@ registrationForm.addEventListener("submit",async e=>{
   medical_notes:medical_notes.value,
   payment_method:payment_method.value,
   payment_reference:paymentReference(),
+  number_sessions:selected.length,
+  amount_due:getAmountDue(status.value, selected.length),
   slots:selected.slice(),
   slots_text:selected.join(" | "),
   payment_status:"En attente"
@@ -199,13 +209,13 @@ registrationForm.addEventListener("submit",async e=>{
 
  await sendFormspreeMail(reg);
 
- let payText="";
+ let payText=`<div class="rib-confirm"><b>Total dû :</b> ${reg.amount_due} € pour ${reg.number_sessions} séance(s).</div>`;
  if(reg.payment_method==="Virement bancaire"){
-  payText=`<div class="rib-confirm"><b>RIB ESNA :</b><br>IBAN : FR76 1100 6000 1104 0190 0500 126<br>BIC : AGRIFRPP810<br>Référence : ${reg.payment_reference}</div>`;
+  payText+=`<div class="rib-confirm"><b>RIB ESNA :</b><br>IBAN : FR76 1100 6000 1104 0190 0500 126<br>BIC : AGRIFRPP810<br>Référence : ${reg.payment_reference}</div>`;
  } else if(reg.payment_method==="Chèque à l'ordre de l'ESNA"){
-  payText=`<div class="rib-confirm">Merci de remettre le chèque à l'ordre de l'ESNA.</div>`;
+  payText+=`<div class="rib-confirm">Merci de remettre le chèque à l'ordre de l'ESNA.</div>`;
  } else {
-  payText=`<div class="rib-confirm">Paiement en espèces à remettre le jour du stage.</div>`;
+  payText+=`<div class="rib-confirm">Paiement en espèces à remettre le jour du stage.</div>`;
  }
 
  message.innerHTML=`✅ Inscription enregistrée.<br>Un e-mail récapitulatif est envoyé à l'ESNA.<br>${payText}`;

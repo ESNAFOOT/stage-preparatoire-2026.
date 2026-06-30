@@ -9,6 +9,19 @@ const configured =
 const client=configured ? window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY) : null;
 let registrations=[];
 
+function getSlotsCount(r){
+  if(r.number_sessions) return Number(r.number_sessions);
+  if(Array.isArray(r.slots)) return r.slots.length;
+  if(r.slots_text) return String(r.slots_text).split(" | ").filter(Boolean).length;
+  return 0;
+}
+
+function getAmountDue(r){
+  if(r.amount_due) return Number(r.amount_due);
+  const unit = r.status === "Licencié ESNA" ? 20 : 25;
+  return unit * getSlotsCount(r);
+}
+
 function login(){
  if(adminPassword.value===ADMIN_PASSWORD){
   sessionStorage.setItem("esna_admin_ok","1");
@@ -56,7 +69,7 @@ async function load(){
   const id=r.id||"";
   const badge=r.payment_status==="Payé"?"🟢 Payé":"🟠 En attente";
   let tr=document.createElement("tr");
-  tr.innerHTML=`<td>${r.player_firstname||""} ${r.player_lastname||""}</td><td>${r.category||""}</td><td>${slots}</td><td>${r.package||""}</td><td>${r.status||""}</td><td>${r.payment_method||""}</td><td>${badge}</td><td>${r.parent_email||""}</td><td>${r.parent_phone||""}</td><td><button class="paid-btn" onclick="markPaid('${id}',${index})">Paiement reçu</button><button class="delete-btn" onclick="deleteRegistration('${id}',${index})">Supprimer</button></td>`;
+  tr.innerHTML=`<td>${r.player_firstname||""} ${r.player_lastname||""}</td><td>${r.category||""}</td><td>${slots}</td><td>${getSlotsCount(r)}</td><td>${getAmountDue(r)} €</td><td>${r.package||""}</td><td>${r.status||""}</td><td>${r.payment_method||""}</td><td>${badge}</td><td>${r.parent_email||""}</td><td>${r.parent_phone||""}</td><td><button class="paid-btn" onclick="markPaid('${id}',${index})">Paiement reçu</button><button class="delete-btn" onclick="deleteRegistration('${id}',${index})">Supprimer</button></td>`;
   tb.appendChild(tr);
  });
 }
@@ -91,8 +104,8 @@ async function deleteRegistration(id,visibleIndex){
 }
 
 function exportCSV(){
- let rows=[["Nom","Prénom","Catégorie","Créneaux","Formule","Statut","Mode paiement","Référence paiement","Email","Téléphone","Club","Infos médicales","Paiement"],
- ...registrations.map(r=>[r.player_lastname,r.player_firstname,r.category,r.slots_text||(Array.isArray(r.slots)?r.slots.join(" / "):r.slots||r.slot),r.package,r.status,r.payment_method,r.payment_reference,r.parent_email,r.parent_phone,r.current_club,r.medical_notes,r.payment_status])];
+ let rows=[["Nom","Prénom","Catégorie","Créneaux","Nombre de séances","Total dû","Formule","Statut","Mode paiement","Référence paiement","Email","Téléphone","Club","Infos médicales","Paiement"],
+ ...registrations.map(r=>[r.player_lastname,r.player_firstname,r.category,r.slots_text||(Array.isArray(r.slots)?r.slots.join(" / "):r.slots||r.slot),getSlotsCount(r),getAmountDue(r),r.package,r.status,r.payment_method,r.payment_reference,r.parent_email,r.parent_phone,r.current_club,r.medical_notes,r.payment_status])];
 
  let csv=rows.map(row=>row.map(v=>`"${String(v||"").replaceAll('"','""')}"`).join(";")).join("\n");
  let a=document.createElement("a");
