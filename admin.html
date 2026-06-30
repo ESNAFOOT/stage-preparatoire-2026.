@@ -6,7 +6,30 @@
 <section id="loginBox" class="login"><h2>Connexion administrateur</h2><label>Mot de passe<input id="adminPassword" type="password" placeholder="Mot de passe"></label><button onclick="login()">Se connecter</button><p id="loginMessage"></p></section>
 <section id="adminPanel" style="display:none">
 <h2>Tableau de bord</h2>
-<div class="dashboard"><div><b id="total">0</b><br>inscriptions</div><div><b id="pending">0</b><br>paiements en attente</div><div><b id="paid">0</b><br>paiements validés</div></div>
+<div class="dashboard stats-dashboard">
+  <div><b id="total">0</b><br>inscriptions</div>
+  <div><b id="totalSessions">0</b><br>séances réservées</div>
+  <div><b id="totalRevenue">0 €</b><br>total dû</div>
+  <div><b id="paidRevenue">0 €</b><br>encaissé</div>
+  <div><b id="pendingRevenue">0 €</b><br>reste à encaisser</div>
+  <div><b id="paid">0</b><br>paiements validés</div>
+  <div><b id="pending">0</b><br>paiements en attente</div>
+</div>
+
+<div class="stats-grid">
+  <div class="stat-box">
+    <h3>Répartition par catégorie</h3>
+    <div id="categoryStats"></div>
+  </div>
+  <div class="stat-box">
+    <h3>Répartition paiement</h3>
+    <div id="paymentStats"></div>
+  </div>
+  <div class="stat-box">
+    <h3>Créneaux les plus réservés</h3>
+    <div id="slotStats"></div>
+  </div>
+</div>
 <div class="actions"><button onclick="exportCSV()">Exporter Excel / CSV</button><button onclick="window.print()">Exporter PDF</button><button onclick="logout()">Déconnexion</button></div>
 <p class="note">Tu peux valider un paiement ou supprimer une inscription en cas d'erreur.</p>
 <table id="registrationsTable">

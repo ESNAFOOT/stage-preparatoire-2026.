@@ -1,4 +1,4 @@
-const VERSION_ESNA = "V22 - montant sélection corrigé";
+const VERSION_ESNA = "V25 - tarifs progressifs";
 
 const slotsData=[
 ["Lundi 3 août","10h-12h"],["Lundi 3 août","14h-16h"],
@@ -52,21 +52,11 @@ function allBookedSlots(data){
 }
 
 function getAmountDue(){
-  const statusEl = document.getElementById("status");
-  const statut = statusEl ? statusEl.value : "Licencié ESNA";
-  const nb = selected.length;
-
-  if(statut === "Licencié ESNA"){
-    if(nb <= 0) return 0;
-    if(nb === 1) return 20;
-    if(nb <= 5) return 90;
-    return 170;
-  }else{
-    if(nb <= 0) return 0;
-    if(nb === 1) return 25;
-    if(nb <= 5) return 110;
-    return 210;
-  }
+  const statut=document.getElementById("status")?.value||"Licencié ESNA";
+  const nb=selected.length;
+  const lic={0:0,1:20,2:40,3:60,4:80,5:90,6:120,7:140,8:160,9:180,10:190};
+  const non={0:0,1:25,2:50,3:75,4:100,5:115,6:150,7:175,8:200,9:225,10:240};
+  return (statut==="Licencié ESNA"?lic:non)[Math.min(nb,10)];
 }
 function updateTotalBox(){
   const sessionsEl = document.getElementById("totalSessions");

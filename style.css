@@ -28,3 +28,13 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;color:#1
 }
 .total-box h3{margin-top:0;color:#d60000}
 .total-price{font-size:28px;color:#d60000;margin:5px 0;font-weight:900}
+
+
+.stats-dashboard{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+.stats-dashboard div b{font-size:26px;color:#d60000}
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin:20px 0}
+.stat-box{background:#fff4f4;border-left:7px solid #d60000;border-radius:14px;padding:16px}
+.stat-box h3{margin-top:0;color:#d60000}
+.stat-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ead1d1;font-weight:700}
+.stat-line:last-child{border-bottom:0}
+.stat-line strong{color:#d60000}
