@@ -38,3 +38,15 @@ body{margin:0;font-family:Arial,Helvetica,sans-serif;background:#f4f4f4;color:#1
 .stat-line{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #ead1d1;font-weight:700}
 .stat-line:last-child{border-bottom:0}
 .stat-line strong{color:#d60000}
+
+.rgpd-box{
+  background:#f7f7f7;
+  border-left:7px solid #111;
+  border-radius:12px;
+  padding:16px;
+  margin:20px 0;
+}
+.rgpd-box h3{margin-top:0;color:#111}
+.rgpd-box p{font-size:14px;line-height:1.45;color:#333}
+.rgpd-check{display:flex;gap:10px;align-items:flex-start;font-weight:800}
+.rgpd-check input{width:auto;margin-top:4px;transform:scale(1.2)}

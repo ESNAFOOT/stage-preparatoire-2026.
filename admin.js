@@ -23,59 +23,6 @@ function getAmountDue(r){
   const non={0:0,1:25,2:50,3:75,4:100,5:115,6:150,7:175,8:200,9:225,10:240};
   return (r.status==="Licencié ESNA"?lic:non)[nb];
 }
-
-function countBy(list, getter){
-  const result = {};
-  list.forEach(item=>{
-    const key = getter(item) || "Non renseigné";
-    result[key] = (result[key] || 0) + 1;
-  });
-  return result;
-}
-
-function renderStatsList(elementId, data, suffix=""){
-  const el = document.getElementById(elementId);
-  if(!el) return;
-  const entries = Object.entries(data).sort((a,b)=>b[1]-a[1]);
-  if(entries.length === 0){
-    el.innerHTML = "<p>Aucune donnée.</p>";
-    return;
-  }
-  el.innerHTML = entries.map(([label,value])=>`
-    <div class="stat-line">
-      <span>${label}</span>
-      <strong>${value}${suffix}</strong>
-    </div>
-  `).join("");
-}
-
-function updateStatistics(){
-  const sessions = registrations.reduce((sum,r)=>sum + getSlotsCount(r),0);
-  const revenue = registrations.reduce((sum,r)=>sum + getAmountDue(r),0);
-  const paidRev = registrations.filter(r=>r.payment_status==="Payé").reduce((sum,r)=>sum + getAmountDue(r),0);
-  const pendingRev = revenue - paidRev;
-
-  if(document.getElementById("totalSessions")) totalSessions.textContent = sessions;
-  if(document.getElementById("totalRevenue")) totalRevenue.textContent = revenue + " €";
-  if(document.getElementById("paidRevenue")) paidRevenue.textContent = paidRev + " €";
-  if(document.getElementById("pendingRevenue")) pendingRevenue.textContent = pendingRev + " €";
-
-  renderStatsList("categoryStats", countBy(registrations, r=>r.category));
-  renderStatsList("paymentStats", countBy(registrations, r=>r.payment_method));
-
-  const slotCounts = {};
-  registrations.forEach(r=>{
-    let slots = [];
-    if(Array.isArray(r.slots)) slots = r.slots;
-    else if(r.slots_text) slots = String(r.slots_text).split(" | ");
-    slots.forEach(s=>{
-      const key = String(s).trim();
-      if(key) slotCounts[key] = (slotCounts[key] || 0) + 1;
-    });
-  });
-  renderStatsList("slotStats", slotCounts, "/10");
-}
-
 async function load(){
  if(client){
   const {data,error}=await client.from("registrations").select("*").order("created_at",{ascending:false});

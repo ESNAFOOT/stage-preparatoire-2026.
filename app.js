@@ -168,7 +168,7 @@ Référence virement : ${reg.payment_reference}
 Email parent : ${reg.parent_email}
 Téléphone parent : ${reg.parent_phone}
 Club actuel : ${reg.current_club}
-Informations médicales : ${reg.medical_notes}`;
+Informations médicales : ${reg.medical_notes}\nConsentement RGPD : accepté`;
 
   await fetch(FORMSPREE_URL,{
     method:"POST",
@@ -238,7 +238,8 @@ document.addEventListener("DOMContentLoaded", function(){
         amount_due:getAmountDue(),
         slots:selected.slice(),
         slots_text:selected.join(" | "),
-        payment_status:"En attente"
+        payment_status:"En attente",
+        rgpd_consent:true
       };
 
       if(client){
