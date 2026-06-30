@@ -1,3 +1,5 @@
+const VERSION_COMPTEUR_ESNA = "V18 - slots uniquement";
+console.log(VERSION_COMPTEUR_ESNA);
 const slotsData=[
 ["Lundi 3 août","10h-12h"],["Lundi 3 août","14h-16h"],
 ["Mardi 4 août","10h-12h"],["Mardi 4 août","14h-16h"],
@@ -51,16 +53,10 @@ function allBookedSlots(data){
   let booked=[];
 
   data.forEach(r=>{
-    // Important : on ne compte qu'une seule source par inscription.
-    // Sinon le même créneau est compté deux fois car il existe dans "slots" ET dans "slots_text".
+    // V18 : on compte uniquement la colonne "slots".
+    // La colonne "slots_text" sert seulement à l'affichage dans l'admin.
     if(Array.isArray(r.slots) && r.slots.length > 0){
       booked = booked.concat(r.slots);
-    } else if(typeof r.slots === "string" && r.slots.trim() !== ""){
-      booked = booked.concat(r.slots.split(" | "));
-    } else if(r.slots_text && String(r.slots_text).trim() !== ""){
-      booked = booked.concat(String(r.slots_text).split(" | "));
-    } else if(r.slot && String(r.slot).trim() !== ""){
-      booked.push(r.slot);
     }
   });
 
