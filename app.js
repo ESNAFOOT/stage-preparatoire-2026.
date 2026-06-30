@@ -95,6 +95,7 @@ async function loadSlots(){
  });
 
  updateSelectedView();
+ updateTotalBox();
 }
 
 function toggleSlot(slot, checked){
@@ -123,13 +124,20 @@ function updateSelectedView(){
 
 
 function updateTotalBox(){
-  if(!document.getElementById("totalBox")) return;
+  const box = document.getElementById("totalBox");
+  const sessionsEl = document.getElementById("totalSessions");
+  const amountEl = document.getElementById("totalAmount");
+  const statusEl = document.getElementById("status");
+
+  if(!box || !sessionsEl || !amountEl) return;
+
   const nb = selected.length;
-  const unit = status && status.value === "Licencié ESNA" ? 20 : 25;
+  const statut = statusEl ? statusEl.value : "Licencié ESNA";
+  const unit = statut === "Licencié ESNA" ? 20 : 25;
   const total = nb * unit;
 
-  totalSessions.textContent = nb + " séance" + (nb > 1 ? "s" : "");
-  totalAmount.textContent = total + " €";
+  sessionsEl.textContent = nb + " séance" + (nb > 1 ? "s" : "");
+  amountEl.textContent = total + " €";
 }
 
 function paymentReference(){
@@ -246,3 +254,12 @@ registrationForm.addEventListener("submit",async e=>{
 
 loadSlots();
 setInterval(loadSlots,15000);
+
+
+document.addEventListener("DOMContentLoaded", function(){
+  const statusEl = document.getElementById("status");
+  if(statusEl){
+    statusEl.addEventListener("change", updateTotalBox);
+  }
+  updateTotalBox();
+});
