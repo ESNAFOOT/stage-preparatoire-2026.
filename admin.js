@@ -1,95 +1,18 @@
-const configured =
-  typeof SUPABASE_URL !== "undefined" &&
-  typeof SUPABASE_ANON_KEY !== "undefined" &&
-  SUPABASE_URL &&
-  SUPABASE_ANON_KEY &&
-  !SUPABASE_URL.includes("COLLER_ICI") &&
-  !SUPABASE_ANON_KEY.includes("COLLER_ICI");
 
-const client=configured ? window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY) : null;
-let registrations=[];
-
-function getSlotsCount(r){
-  if(r.number_sessions) return Number(r.number_sessions);
-  if(Array.isArray(r.slots)) return r.slots.length;
-  if(r.slots_text) return String(r.slots_text).split(" | ").filter(Boolean).length;
-  return 0;
-}
-
-function getAmountDue(r){
-  if(r.amount_due) return Number(r.amount_due);
-  const nb=Math.min(getSlotsCount(r),10);
-  const lic={0:0,1:20,2:40,3:60,4:80,5:90,6:120,7:140,8:160,9:180,10:190};
-  const non={0:0,1:25,2:50,3:75,4:100,5:115,6:150,7:175,8:200,9:225,10:240};
-  return (r.status==="Licencié ESNA"?lic:non)[nb];
-}
-async function load(){
- if(client){
-  const {data,error}=await client.from("registrations").select("*").order("created_at",{ascending:false});
-  if(error){
-    alert("Erreur Supabase : "+error.message);
-    registrations=[];
-  }else{
-    registrations=data||[];
-  }
- }else{
-  registrations=JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]").reverse();
- }
-
- total.textContent=registrations.length;
- paid.textContent=registrations.filter(r=>r.payment_status==="Payé").length;
- pending.textContent=registrations.filter(r=>r.payment_status!=="Payé").length;
- updateStatistics();
-
- let tb=document.querySelector("#registrationsTable tbody");
- tb.innerHTML="";
-
- registrations.forEach((r,index)=>{
-  const slots=r.slots_text||(Array.isArray(r.slots)?r.slots.join(" / "):(r.slots||r.slot||""));
-  const id=r.id||"";
-  const badge=r.payment_status==="Payé"?"🟢 Payé":"🟠 En attente";
-  let tr=document.createElement("tr");
-  tr.innerHTML=`<td>${r.player_firstname||""} ${r.player_lastname||""}</td><td>${r.category||""}</td><td>${slots}</td><td>${getSlotsCount(r)}</td><td>${getAmountDue(r)} €</td><td>${r.package||""}</td><td>${r.status||""}</td><td>${r.payment_method||""}</td><td>${badge}</td><td>${r.parent_email||""}</td><td>${r.parent_phone||""}</td><td><button class="paid-btn" onclick="markPaid('${id}',${index})">Paiement reçu</button><button class="delete-btn" onclick="deleteRegistration('${id}',${index})">Supprimer</button></td>`;
-  tb.appendChild(tr);
- });
-}
-
-async function markPaid(id,visibleIndex){
- if(client){
-  const {error}=await client.from("registrations").update({payment_status:"Payé"}).eq("id",id);
-  if(error){alert("Erreur : "+error.message);return}
- }else{
-  let data=JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]");
-  const realIndex=data.length-1-visibleIndex;
-  if(data[realIndex]) data[realIndex].payment_status="Payé";
-  localStorage.setItem("esna_registrations_demo",JSON.stringify(data));
- }
- load();
-}
-
-async function deleteRegistration(id,visibleIndex){
- if(!confirm("Confirmer la suppression de cette inscription ?")) return;
- if(client){
-  const {error}=await client.from("registrations").delete().eq("id",id);
-  if(error){alert("Erreur suppression : "+error.message);return}
- }else{
-  let data=JSON.parse(localStorage.getItem("esna_registrations_demo")||"[]");
-  const realIndex=data.length-1-visibleIndex;
-  if(realIndex>=0){
-    data.splice(realIndex,1);
-    localStorage.setItem("esna_registrations_demo",JSON.stringify(data));
-  }
- }
- load();
-}
-
-function exportCSV(){
- let rows=[["Nom","Prénom","Catégorie","Créneaux","Nombre de séances","Total dû","Formule","Statut","Mode paiement","Référence paiement","Email","Téléphone","Club","Infos médicales","Paiement"],
- ...registrations.map(r=>[r.player_lastname,r.player_firstname,r.category,r.slots_text||(Array.isArray(r.slots)?r.slots.join(" / "):r.slots||r.slot),getSlotsCount(r),getAmountDue(r),r.package,r.status,r.payment_method,r.payment_reference,r.parent_email,r.parent_phone,r.current_club,r.medical_notes,r.payment_status])];
-
- let csv=rows.map(row=>row.map(v=>`"${String(v||"").replaceAll('"','""')}"`).join(";")).join("\n");
- let a=document.createElement("a");
- a.href=URL.createObjectURL(new Blob([csv],{type:"text/csv;charset=utf-8;"}));
- a.download="inscriptions_stage_esna.csv";
- a.click();
-}
+const client=window.supabase.createClient(SUPABASE_URL,SUPABASE_ANON_KEY);let registrations=[];const TOTAL_CAPACITY=220;
+function login(){if(adminPassword.value===ADMIN_PASSWORD){loginBox.style.display="none";adminPanel.style.display="block";load()}else loginMsg.textContent="Mot de passe incorrect"}
+function logout(){adminPanel.style.display="none";loginBox.style.display="block"}
+function getSlotsCount(r){if(r.number_sessions)return Number(r.number_sessions);if(Array.isArray(r.slots))return r.slots.length;if(r.slots_text)return String(r.slots_text).split(" | ").filter(Boolean).length;return 0}
+function getAmountDue(r){if(r.amount_due)return Number(r.amount_due);const nb=Math.min(getSlotsCount(r),10);const lic={0:0,1:20,2:40,3:60,4:80,5:90,6:120,7:140,8:160,9:180,10:190};const non={0:0,1:25,2:50,3:75,4:100,5:115,6:150,7:175,8:200,9:225,10:240};return (r.status==="Licencié ESNA"?lic:non)[nb]}
+async function load(){const{data,error}=await client.from("registrations").select("*").order("created_at",{ascending:false});if(error){alert(error.message);return}registrations=data||[];renderTable()}
+function filteredRows(){const q=(searchInput?.value||"").toLowerCase(),cat=categoryFilter?.value||"",pay=paymentFilter?.value||"";return registrations.filter(r=>{const t=`${r.player_firstname||""} ${r.player_lastname||""} ${r.parent_email||""} ${r.parent_phone||""}`.toLowerCase();return(!q||t.includes(q))&&(!cat||r.category===cat)&&(!pay||(pay==="Payé"?r.payment_status==="Payé":r.payment_status!=="Payé"))})}
+function slotsDisplay(r){if(Array.isArray(r.slots))return r.slots.join("<br>");return(r.slots_text||"").replaceAll(" | ","<br>")}
+function renderTable(){const rows=filteredRows();tableBody.innerHTML=rows.map(r=>{const i=registrations.findIndex(x=>x.id===r.id),paid=r.payment_status==="Payé";return `<tr><td>${r.player_firstname||""}<br>${r.player_lastname||""}</td><td>${r.category||""}</td><td>${slotsDisplay(r)}</td><td>${getSlotsCount(r)}</td><td><b>${getAmountDue(r)} €</b></td><td>${r.status||""}</td><td>${r.payment_method||""}</td><td>${paid?"🟢 Payé":"🟠 En attente"}</td><td>${r.parent_email||""}</td><td>${r.parent_phone||""}</td><td>${r.rgpd_consent?"✅":"—"}</td><td>${paid?"":`<button class="paid-btn" onclick="markPaid('${r.id}',${i})">Paiement reçu</button>`}<button class="delete-btn" onclick="deleteRegistration('${r.id}',${i})">Supprimer</button></td></tr>`}).join("");updateStatistics()}
+function countBy(list,getter){const o={};list.forEach(x=>{const k=getter(x)||"Non renseigné";o[k]=(o[k]||0)+1});return o}
+function renderStatsList(id,data,suffix=""){const el=document.getElementById(id);if(!el)return;el.innerHTML=Object.entries(data).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="stat-line"><span>${k}</span><strong>${v}${suffix}</strong></div>`).join("")||"<p>Aucune donnée.</p>"}
+function updateStatistics(){const s=registrations.reduce((a,r)=>a+getSlotsCount(r),0),rev=registrations.reduce((a,r)=>a+getAmountDue(r),0),paidRows=registrations.filter(r=>r.payment_status==="Payé"),paidRev=paidRows.reduce((a,r)=>a+getAmountDue(r),0);total.textContent=registrations.length;totalSessions.textContent=s;totalRevenue.textContent=rev+" €";paidRevenue.textContent=paidRev+" €";pendingRevenue.textContent=(rev-paidRev)+" €";fillRate.textContent=Math.round(s/TOTAL_CAPACITY*100)+"%";paid.textContent=paidRows.length;pending.textContent=registrations.length-paidRows.length;renderStatsList("categoryStats",countBy(registrations,r=>r.category));renderStatsList("paymentStats",countBy(registrations,r=>r.payment_method));renderStatsList("statusStats",countBy(registrations,r=>r.status));const sc={};registrations.forEach(r=>{let a=Array.isArray(r.slots)?r.slots:String(r.slots_text||"").split(" | ");a.forEach(x=>{x=String(x).trim();if(x)sc[x]=(sc[x]||0)+1})});renderStatsList("slotStats",sc,"/10")}
+async function markPaid(id,i){const{error}=await client.from("registrations").update({payment_status:"Payé"}).eq("id",id);if(error){alert(error.message);return}registrations[i].payment_status="Payé";renderTable()}
+async function deleteRegistration(id,i){if(!confirm("Supprimer cette inscription ?"))return;const{error}=await client.from("registrations").delete().eq("id",id);if(error){alert(error.message);return}registrations.splice(i,1);renderTable()}
+function csv(v){return `"${String(v??"").replaceAll('"','""')}"`}
+function exportCSV(){const header=["Nom","Prénom","Catégorie","Statut","Créneaux","Nb séances","Total dû","Mode paiement","Référence","Paiement","Email","Téléphone","Club","Infos médicales","RGPD"];const lines=[header.map(csv).join(";")];filteredRows().forEach(r=>lines.push([r.player_lastname,r.player_firstname,r.category,r.status,Array.isArray(r.slots)?r.slots.join(" | "):r.slots_text,getSlotsCount(r),getAmountDue(r),r.payment_method,r.payment_reference,r.payment_status,r.parent_email,r.parent_phone,r.current_club,r.medical_notes,r.rgpd_consent?"Oui":"Non"].map(csv).join(";")));const blob=new Blob(["\ufeff"+lines.join("\n")],{type:"text/csv"});const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="inscriptions_stage_esna_2026.csv";a.click()}
+setInterval(()=>{if(adminPanel&&adminPanel.style.display!=="none")load()},30000);

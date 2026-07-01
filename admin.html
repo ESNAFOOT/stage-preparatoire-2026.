@@ -1,41 +1,10 @@
-<!doctype html>
-<html lang="fr">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Admin ESNA</title><link rel="stylesheet" href="style.css"></head>
-<body>
-<header class="admin-head"><img src="logo_esna.png" alt="Logo ESNA"><h1>Administration ESNA</h1><a href="index.html" class="btn">Retour site</a></header>
-<section id="loginBox" class="login"><h2>Connexion administrateur</h2><label>Mot de passe<input id="adminPassword" type="password" placeholder="Mot de passe"></label><button onclick="login()">Se connecter</button><p id="loginMessage"></p></section>
-<section id="adminPanel" style="display:none">
-<h2>Tableau de bord</h2>
-<div class="dashboard stats-dashboard">
-  <div><b id="total">0</b><br>inscriptions</div>
-  <div><b id="totalSessions">0</b><br>séances réservées</div>
-  <div><b id="totalRevenue">0 €</b><br>total dû</div>
-  <div><b id="paidRevenue">0 €</b><br>encaissé</div>
-  <div><b id="pendingRevenue">0 €</b><br>reste à encaisser</div>
-  <div><b id="paid">0</b><br>paiements validés</div>
-  <div><b id="pending">0</b><br>paiements en attente</div>
-</div>
-
-<div class="stats-grid">
-  <div class="stat-box">
-    <h3>Répartition par catégorie</h3>
-    <div id="categoryStats"></div>
-  </div>
-  <div class="stat-box">
-    <h3>Répartition paiement</h3>
-    <div id="paymentStats"></div>
-  </div>
-  <div class="stat-box">
-    <h3>Créneaux les plus réservés</h3>
-    <div id="slotStats"></div>
-  </div>
-</div>
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Administration ESNA</title><link rel="stylesheet" href="style.css"></head><body>
+<header class="admin-head"><img src="logo_esna.png"><h1>ADMINISTRATION ESNA</h1><a class="btn" href="index.html">Retour site</a></header>
+<section id="loginBox" class="login"><h2>Connexion admin</h2><label>Mot de passe<input type="password" id="adminPassword"></label><button onclick="login()">Connexion</button><div id="loginMsg"></div></section>
+<section id="adminPanel" style="display:none"><h2>Tableau de bord premium</h2>
+<div class="toolbar"><input id="searchInput" placeholder="Rechercher..." oninput="renderTable()"><select id="categoryFilter" onchange="renderTable()"><option value="">Toutes catégories</option><option>U13</option><option>U14</option><option>U15</option><option>U16</option><option>U18</option></select><select id="paymentFilter" onchange="renderTable()"><option value="">Tous paiements</option><option value="Payé">Payé</option><option value="En attente">En attente</option></select></div>
+<div class="dashboard stats-dashboard"><div><b id="total">0</b><br>inscriptions</div><div><b id="totalSessions">0</b><br>séances réservées</div><div><b id="totalRevenue">0 €</b><br>total dû</div><div><b id="paidRevenue">0 €</b><br>encaissé</div><div><b id="pendingRevenue">0 €</b><br>reste à encaisser</div><div><b id="fillRate">0%</b><br>taux remplissage</div><div><b id="paid">0</b><br>paiements validés</div><div><b id="pending">0</b><br>paiements en attente</div></div>
 <div class="actions"><button onclick="exportCSV()">Exporter Excel / CSV</button><button onclick="window.print()">Exporter PDF</button><button onclick="logout()">Déconnexion</button></div>
-<p class="note">Tu peux valider un paiement ou supprimer une inscription en cas d'erreur.</p>
-<table id="registrationsTable">
-<thead><tr><th>Joueur</th><th>Cat.</th><th>Créneaux</th><th>Nb séances</th><th>Total dû</th><th>Formule</th><th>Statut</th><th>Mode paiement</th><th>Paiement</th><th>Email</th><th>Tél.</th><th>Action</th></tr></thead>
-<tbody></tbody>
-</table>
-</section>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="admin.js"></script>
-</body></html>
+<div class="stats-grid"><div class="stat-box"><h3>Catégories</h3><div id="categoryStats"></div></div><div class="stat-box"><h3>Modes de paiement</h3><div id="paymentStats"></div></div><div class="stat-box"><h3>Statut joueur</h3><div id="statusStats"></div></div><div class="stat-box"><h3>Créneaux réservés</h3><div id="slotStats"></div></div></div>
+<h2>Inscriptions</h2><div class="table-wrap"><table><thead><tr><th>Joueur</th><th>Cat.</th><th>Créneaux</th><th>Nb séances</th><th>Total dû</th><th>Statut</th><th>Mode paiement</th><th>Paiement</th><th>Email</th><th>Tél.</th><th>RGPD</th><th>Action</th></tr></thead><tbody id="tableBody"></tbody></table></div>
+</section><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="config.js"></script><script src="admin.js"></script></body></html>
